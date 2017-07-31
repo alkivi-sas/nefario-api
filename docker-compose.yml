@@ -2,22 +2,36 @@ version: "3"
 
 services:
   master:
-    build: salt-master
+    image: "alkivi/salt-master:2017.7"
     privileged: true
     hostname: master
     container_name: master
+    environment:
+      LOG_LEVEL: debug
+      SALT_API: "yes"
+    expose:
+      - "4505"
+      - "4506"
+      - "8080"
   minion:
-    build: salt-minion
+    image: "alkivi/salt-minion:2017.7"
     privileged: true
     hostname: minion
     container_name: minion
     links:
       - master
+    environment:
+      SALT_NAME: minion
+      LOG_LEVEL: debug
   nefario:
     build: .
     container_name: api
     links:
       - master
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./nefario:/nefario
   redis:
     image: "redis:alpine"
     container_name: redis

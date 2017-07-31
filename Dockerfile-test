@@ -1,9 +1,0 @@
-FROM python:3.6-alpine3.6
-ADD nefario /nefario
-ADD tests /nefario/tests
-COPY requirements.txt /nefario
-COPY requirements.tests.txt /nefario
-WORKDIR /nefario
-RUN pip install -r requirements.tests.txt
-CMD ["python", "app.py"]
-
