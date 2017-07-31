@@ -1,0 +1,37 @@
+version: "3"
+
+services:
+  master:
+    build: salt-master
+    privileged: true
+    hostname: master
+    container_name: master
+    environment:
+      LOG_LEVEL: debug
+      SALT_API: "yes"
+    expose:
+      - "4505"
+      - "4506"
+      - "8080"
+  minion:
+    build: salt-minion
+    privileged: true
+    hostname: minion
+    container_name: minion
+    environment:
+      SALT_NAME: minion
+      LOG_LEVEL: info
+    links:
+      - master
+  nefario:
+    build: .
+    container_name: api
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./nefario:/nefario
+    links:
+      - master
+  redis:
+    image: "redis:alpine"
+    container_name: redis
