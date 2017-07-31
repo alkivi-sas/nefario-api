@@ -1,0 +1,25 @@
+version: "3"
+
+services:
+  master:
+    environment:
+      LOG_LEVEL: debug
+      SALT_API: "yes"
+    expose:
+      - "4505"
+      - "4506"
+      - "8080"
+  minion:
+    environment:
+      SALT_NAME: minion
+      LOG_LEVEL: debug
+  nefario:
+    build: 
+        context: .
+        dockerfile: Dockerfile-test
+    environment:
+        TESTS: 'true'
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./nefario:/nefario
