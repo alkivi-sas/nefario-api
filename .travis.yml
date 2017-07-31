@@ -1,0 +1,35 @@
+sudo: required
+services:
+- docker
+
+env:
+  global:
+    - DOCKER_COMPOSE_VERSION=1.14.0
+
+before_install:
+  - sudo rm /usr/local/bin/docker-compose
+  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
+  - chmod +x docker-compose
+  - sudo mv docker-compose /usr/local/bin
+  - docker-compose build
+
+before_script:
+  - docker-compose up --build -d
+  - MASTER_IP=`docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' master`
+  - while ! echo exit | nc $MASTER_IP 4505 ; do sleep 5; done
+
+script:
+  - py.test
+after_script:
+  - docker-compose down
+
+notifications:
+  slack:
+    secure: UISF6suP5u5h2JTAHvxoANlYPNHB4+2q7S2u41tQfeuz8dELhH+IpDL4nUAOZgQRFhQYyMxciwp1SzaPCa31wvL49BX0K/5J4fC2nGellcCAPIPX4FBUUWZDmVt8mtxtcEqKjjqDoBYSpEwJ2xEbK3VigMUwXyVIMP+DZ9/M+DbIwF4U/+ZN82uWc5fiqS8a1Qil6J7luFR6V8naYVI4dHALpHoE6g7L4MqDYoGsJAJpSmkeGF6aaFDI4A1022KwKzQvrNXF/vlWmNx+ng9e9g17N7fLxyQUCb82NYcNBfsBj/BGoR02bz/VzM2WCL7os+VpOHv6LnRrWtHnsBERrIfkbB7YppZ31bV0NUh0zeqtrZCYO1mdAlqfOLu4k5syrbuLnC9ea213pQVdCOX+dsvGgCFi9K8tWUxU5M/TCq2XVe+PaRPJfcFjPEbiS3C5Wnw1Ouua122Omnk5ObtoIldLYEQgbzYw/CXiMwpeDwCTcnXOfVTdOCpQQBz/vOqc1c3AsX5CvU5l4PDbPN9RPBrz2gutHwGzAtjoQeaE5+RcXhYTF3lROgakafF7RLVV8ahxjzpigblCAO3rjmCEF0s5Y/K5hBElBrH9/ztVWN+MQLHJCddR+2uy9RqEQQT6KeWOk/h2ysFBAbKRMleaKppy5BqJ78BX4mtcXknVs2c=
+
+language: python
+
+python:
+  - "3.5"
+  - "3.6"
+
