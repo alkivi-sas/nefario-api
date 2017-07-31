@@ -11,7 +11,7 @@ before_install:
 - chmod +x docker-compose
 - sudo mv docker-compose /usr/local/bin
 before_script:
-- docker-compose -f docker-compose.yml -f docker-compose.tests.yml  up --build -d
+- docker-compose up --build -d
 - MASTER_IP=`docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}'
   master`
 - while ! echo exit | nc $MASTER_IP 4505 ; do sleep 5; done
