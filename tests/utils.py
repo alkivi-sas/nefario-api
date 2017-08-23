@@ -1,34 +1,9 @@
+import base64
+import json
 import pytest
-import os
-import docker
-from pprint import pprint
 
-def _docker_client():
-    return docker.from_env()
+from requests import Request, Session
 
-
-@pytest.fixture(scope='session')
-def api_url():
-    """Ensure that "some service" is up and responsive."""
-    client = _docker_client()
-    web = client.containers.get('web')
-    
-    web.attrs['NetworkSettings']
-
-    port = None
-    for k, v in web.attrs['NetworkSettings']['Ports'].items():
-        if len(v) == 1:
-            port = v[0]['HostPort']
-
-    ip = None
-    for k, v in web.attrs['NetworkSettings']['Networks'].items():
-        ip = v['IPAddress']
-
-    return 'http://{0}:{1}'.format(ip, port)
-
-
-@pytest.mark.usefixtures('client_class')
-@pytest.mark.usefixtures('api_url')
 class TestAPI(object):
     """
     Generic class for our tests.
@@ -36,35 +11,39 @@ class TestAPI(object):
     """
 
     @classmethod
+    @pytest.mark.usefixtures('api_url')
     @pytest.fixture(scope="class", autouse=True)
-    def setup(self):
+    def setup(self, api_url):
         """Fixture for variable common in tests."""
-        self._valid_token = None
-        self._valid_minion = None
-        self.valid_user = 'admin'
-        self.valid_password = 'admin'
-        self.admin_user = 'admin'
-        self.admin_password = 'admin'
-        self.restricted_user = 'restricted'
-        self.restricted_password = 'restricted'
+        self._token = None
+        self._minion = None
+        self.user = 'test'
+        self.password = 'test'
+        self.api_url = api_url
+        self.client = Session()
+
+    def request(self, method, url, params=None, data=None, headers=None):
+        final_url = '{0}/{1}'.format(self.api_url, url.lstrip('/'))
+        return self.client.request(method, final_url, params, data, headers)
 
     @property
-    def valid_token(self):
+    def token(self):
         """Get a token we know is valid."""
-        if not self._valid_token:
-            self._valid_token = self.get_valid_token(user=self.admin_user)
-        return self._valid_token
+        if not self._token:
+            self._token = self.get_token(user=self.user)
+        return self._token
 
     @property
-    def valid_minion(self):
+    def minion(self):
         """Get a minion on the current salt master."""
-        if not self._valid_minion:
+        if not self._minion:
             r, s, h = self.get('/api/v1.0/minions',
-                               token_auth=self.valid_token)
-            self._valid_minion = r[0]
-        return self._valid_minion
+                               token_auth=self.token)
+            assert s == 200
+            self._minion = r[0]
+        return self._minion
 
-    def get_valid_token(self, user, password=None):
+    def get_token(self, user, password=None):
         """Return a valid token for a user."""
         if not password:
             password = user
@@ -93,12 +72,11 @@ class TestAPI(object):
 
     def get(self, url, basic_auth=None, token_auth=None):
         """GET method helper."""
-        rv = self.client.get(url,
-                             headers=self.get_headers(basic_auth, token_auth))
+        rv = self.request('GET', url,
+                          headers=self.get_headers(basic_auth, token_auth))
         # clean up the database session, since this only occurs when the app
         # context is popped.
-        db.session.remove()
-        body = rv.get_data(as_text=True)
+        body = rv.text
         if body is not None and body != '':
             try:
                 body = json.loads(body)
@@ -109,12 +87,10 @@ class TestAPI(object):
     def post(self, url, data=None, basic_auth=None, token_auth=None):
         """POST method helper."""
         d = data if data is None else json.dumps(data)
-        rv = self.client.post(url, data=d,
-                              headers=self.get_headers(basic_auth, token_auth))
-        # clean up the database session, since this only occurs when the app
-        # context is popped.
-        db.session.remove()
-        body = rv.get_data(as_text=True)
+        rv = self.request('POST', url, data=d,
+                          headers=self.get_headers(basic_auth, token_auth))
+        print(rv)
+        body = rv.text
         if body is not None and body != '':
             try:
                 body = json.loads(body)
@@ -125,12 +101,9 @@ class TestAPI(object):
     def put(self, url, data=None, basic_auth=None, token_auth=None):
         """PUT method helper."""
         d = data if data is None else json.dumps(data)
-        rv = self.client.put(url, data=d,
-                             headers=self.get_headers(basic_auth, token_auth))
-        # clean up the database session, since this only occurs when the app
-        # context is popped.
-        db.session.remove()
-        body = rv.get_data(as_text=True)
+        rv = self.request('PUT', url, data=d,
+                          headers=self.get_headers(basic_auth, token_auth))
+        body = rv.text
         if body is not None and body != '':
             try:
                 body = json.loads(body)
@@ -140,11 +113,8 @@ class TestAPI(object):
 
     def delete(self, url, basic_auth=None, token_auth=None):
         """DELETE method helper."""
-        rv = self.client.delete(url, headers=self.get_headers(basic_auth,
+        rv = self.request('DELETE', url, headers=self.get_headers(basic_auth,
                                                               token_auth))
-        # clean up the database session, since this only occurs when the app
-        # context is popped.
-        db.session.remove()
         body = rv.get_data(as_text=True)
         if body is not None and body != '':
             try:

@@ -23,9 +23,10 @@ services:
     environment:
       SALT_NAME: minion
       LOG_LEVEL: debug
-  nefario:
+  api:
     build: .
-    container_name: nefario
+    hostname: api
+    container_name: api
     links:
       - master
     ports:
@@ -35,11 +36,11 @@ services:
   redis:
     image: "redis:alpine"
     container_name: redis
-  nginx:
+  web:
     build: ./nginx
-    container_name: nginx
+    container_name: web
     links:
-      - nefario
+      - api
     ports:
       - "80:80"
 

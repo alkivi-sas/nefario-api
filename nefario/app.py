@@ -370,7 +370,7 @@ class Job(object):
                 raise Exception(tgt)
             else:
                 return result[tgt]
-        return result
+        return result['return'][0]
 
 
 def get_minion_functions(minion):
@@ -391,6 +391,30 @@ def get_minion_functions(minion):
     functions[minion] = result
 
     return result
+
+
+@app.route('/api/v1.0/minions', methods=['GET'])
+@token_auth.login_required
+def api_get_minions():
+    """
+    Return the list of salt keys.
+    ---
+    tags:
+      - minions
+    security:
+      - token: []
+    responses:
+      200:
+        description: Returns the lists of keys
+        schema:
+          id: keys
+          type: array
+          items:
+            type: string
+      500:
+        description: Error in salt return
+    """
+    return jsonify(get_minions(use_cache=False))
 
 
 
