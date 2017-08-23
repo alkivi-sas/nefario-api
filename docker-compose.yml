@@ -2,7 +2,7 @@ version: "3"
 
 services:
   master:
-    image: "alkivi/salt-master:2017.7"
+    image: "alkivi/salt-master:2017.7.1"
     privileged: true
     hostname: master
     container_name: master
@@ -14,7 +14,7 @@ services:
       - "4506"
       - "8080"
   minion:
-    image: "alkivi/salt-minion:2017.7"
+    image: "alkivi/salt-minion:2017.7.1"
     privileged: true
     hostname: minion
     container_name: minion
@@ -25,7 +25,7 @@ services:
       LOG_LEVEL: debug
   nefario:
     build: .
-    container_name: api
+    container_name: nefario
     links:
       - master
     ports:
@@ -37,7 +37,7 @@ services:
     container_name: redis
   nginx:
     build: ./nginx
-    container_name: web
+    container_name: nginx
     links:
       - nefario
     ports:

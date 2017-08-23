@@ -5,10 +5,19 @@
 #    pip-compile --output-file requirements.txt setup.py
 #
 click==6.7                # via flask
+flasgger==0.6.6
+flask-cors==3.0.3
+flask-httpauth==3.2.3
+flask-sqlalchemy==2.2
 flask==0.12.2
 itsdangerous==0.24        # via flask
 jinja2==2.9.6             # via flask
+jsonschema==2.6.0         # via flasgger
 markupsafe==1.0           # via jinja2
+mistune==0.7.4            # via flasgger
+pyyaml==3.12              # via flasgger
 redis==2.10.5
 salt-pepper==0.5.0
+six==1.10.0               # via flasgger, flask-cors
+sqlalchemy==1.1.13        # via flask-sqlalchemy
 werkzeug==0.12.2          # via flask

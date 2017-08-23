@@ -39,3 +39,6 @@ htmlcov
 .pydevproject
 
 *.swp
+
+# db
+nefario/db.sqlite

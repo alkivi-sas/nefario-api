@@ -7,6 +7,10 @@ setup(
     install_requires=[
         'flask',
         'redis',
+        'Flask-HTTPAuth',
+        'flask-cors',
+        'flask_sqlalchemy',
+        'flasgger',
         'salt-pepper',
     ],
 )

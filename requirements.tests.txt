@@ -4,5 +4,6 @@ flake8
 pytest
 pytest-cov
 coverage
-pytest-docker
 requests
+docker-py
+backoff
