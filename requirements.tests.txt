@@ -8,3 +8,4 @@ requests
 docker
 backoff
 pytest-docker
+swagger_spec_validator

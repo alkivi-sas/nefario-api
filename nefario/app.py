@@ -1,7 +1,7 @@
 import os
 import time
 
-from flask import Flask, jsonify, g, request
+from flask import Flask, jsonify, g, request, abort
 from flask_httpauth import HTTPBasicAuth, HTTPTokenAuth
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
@@ -10,7 +10,7 @@ from redis import Redis
 from pepper import Pepper, PepperException
 from six import string_types
 
-from exceptions import SaltTaskError, ValidationError, SaltError, ApiError
+from exceptions import ValidationError, SaltError, ApiError, SaltMinionError
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -22,11 +22,37 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
 redis = Redis(host='redis', port=6379)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# Swagger config
+
+swagger_config = {
+    'specs':
+    [
+        {
+            'version': '1.0',
+            'title': 'Api v1.0',
+            'endpoint': 'api',
+            'description': 'This is the version 1 of our API',
+            'route': '/api/v1.0/spec',
+        },
+    ],
+    'securityDefinitions': {
+        'token': {
+            'type': 'apiKey',
+            'in': 'header',
+            'name': 'Authorization'
+        },
+        'basic': {
+            'type': 'basic'
+        }
+    },
+    'headers': [],
+}
+
+
 # Init Extensions
 db = SQLAlchemy(app)
 CORS(app)
-swagger = Swagger(app)
-
+swagger = Swagger(app, config=swagger_config)
 
 
 # Init Auth
@@ -60,7 +86,6 @@ class User(db.Model):
         user.from_dict(data, partial_update=False)
         return user
 
-
     def from_dict(self, data, partial_update=True):
         """Import user data from a dictionary."""
         for field in ['nickname']:
@@ -69,7 +94,6 @@ class User(db.Model):
             except KeyError:
                 if not partial_update:
                     abort(400)
-
 
 
 @basic_auth.verify_password
@@ -104,6 +128,7 @@ def verify_password(nickname, password):
     g.current_user = user
 
     return True
+
 
 @basic_auth.error_handler
 def password_error():
@@ -173,7 +198,6 @@ def new_token():
 
     """
     return jsonify({'token': g.current_user.token})
-
 
 
 @app.route('/api/v1.0/minions/<string:minion>/ping', methods=['POST'])
@@ -263,6 +287,7 @@ def _ping_one(minion):
         result = False
     return {minion: result}
 
+
 def _ping():
     """Return the simple test.ping but can be on a list."""
     data = request.json
@@ -294,6 +319,7 @@ def _ping():
     job = Job(only_one=False)
     result = job.run(real_target, 'test.ping', expr_form='list')
     return result
+
 
 def get_minions(type='minions', use_cache=True):
     """
@@ -338,13 +364,11 @@ class Job(object):
                 msg = 'Minion {0} is not valid'.format(tgt)
                 raise ValidationError(msg)
 
-
             # We skip check for sys.list_functions to infinite recursion
             if fun not in 'sys.list_functions':
                 if fun not in get_minion_functions(tgt):
                     msg = 'Task {0} not valid'.format(fun)
                     raise ValidationError(msg)
-
 
         # We might want to run async request
         function = None
@@ -425,11 +449,10 @@ def api_get_minions():
     return jsonify(get_minions(use_cache=False))
 
 
-
 def _get_pepper():
     """Return a pepper object with auth."""
     api = Pepper('http://master:8080', debug_http=True)
-    api.auth = { 'token': g.current_user.token, 'user': g.current_user.nickname, 'eauth': 'pam' }
+    api.auth = {'token': g.current_user.token, 'user': g.current_user.nickname, 'eauth': 'pam'}
     return api
 
 
@@ -469,7 +492,6 @@ def bad_request(e):
 app.register_error_handler(404, not_found)
 app.register_error_handler(405, method_not_supported)
 app.register_error_handler(500, internal_server_error)
-
 
 
 if __name__ == "__main__":
