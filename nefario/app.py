@@ -8,6 +8,9 @@ from flask_cors import CORS
 from flasgger import Swagger
 from redis import Redis
 from pepper import Pepper, PepperException
+from six import string_types
+
+from exceptions import SaltTaskError, ValidationError, SaltError, ApiError
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -23,6 +26,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 CORS(app)
 swagger = Swagger(app)
+
+
 
 # Init Auth
 basic_auth = HTTPBasicAuth()
@@ -271,7 +276,7 @@ def _ping():
     to_test = None
     if isinstance(targets, list):
         to_test = targets
-    elif isinstance(targets, (str, unicode)):
+    elif isinstance(targets, string_types):
         to_test = [targets]
     else:
         raise ValidationError('target parameter is not an array not a scalar')
@@ -306,7 +311,7 @@ def get_minions(type='minions', use_cache=True):
     app.logger.debug('test keys')
     app.logger.debug(keys)
     if type not in keys:
-        raise Exception('no key {0} in key.list_all'.format(type))
+        raise SaltError('no key {0} in key.list_all'.format(type))
     minions[type] = keys[type]
     return minions[type]
 
@@ -331,13 +336,15 @@ class Job(object):
         if self.only_one:
             if tgt not in get_minions():
                 msg = 'Minion {0} is not valid'.format(tgt)
-                raise Exception(msg)
+                raise ValidationError(msg)
+
 
             # We skip check for sys.list_functions to infinite recursion
             if fun not in 'sys.list_functions':
                 if fun not in get_minion_functions(tgt):
                     msg = 'Task {0} not valid'.format(fun)
-                    raise Exception(msg)
+                    raise ValidationError(msg)
+
 
         # We might want to run async request
         function = None
@@ -350,6 +357,7 @@ class Job(object):
         info = 'launching {0} on {1}, '.format(fun, tgt) + \
                'using args {0}, '.format(str(arg)) + \
                'targeting using {0}'.format(expr_form)
+        app.logger.warning(info)
         app.logger.info(info)
         result = function(tgt, fun,
                           arg=arg,
@@ -367,7 +375,7 @@ class Job(object):
         if self.only_one:
             result = result['return'][0]
             if tgt not in result:
-                raise Exception(tgt)
+                raise SaltMinionError(tgt)
             else:
                 return result[tgt]
         return result['return'][0]
@@ -423,6 +431,44 @@ def _get_pepper():
     api = Pepper('http://master:8080', debug_http=True)
     api.auth = { 'token': g.current_user.token, 'user': g.current_user.nickname, 'eauth': 'pam' }
     return api
+
+
+def not_found(e):
+    """Send a correct json for 404."""
+    response = jsonify({'status': 404, 'error': 'Not found',
+                        'message': 'Invalid resource URI'})
+    response.status_code = 404
+    return response
+
+
+def method_not_supported(e):
+    """Send a correct json for 405."""
+    response = jsonify({'status': 405, 'error': 'Method not supported',
+                        'message': 'This method is not supported'})
+    response.status_code = 405
+    return response
+
+
+def internal_server_error(e):
+    """Send a correct json for 500."""
+    response = jsonify({'status': 500, 'error': 'Internal server error',
+                        'message': e.args[0]})
+    response.status_code = 500
+    return response
+
+
+@app.errorhandler(ApiError)
+def bad_request(e):
+    """Send generic error for API."""
+    response = jsonify(e.to_dict())
+    response.status_code = e.status_code
+    return response
+
+
+# Register errors
+app.register_error_handler(404, not_found)
+app.register_error_handler(405, method_not_supported)
+app.register_error_handler(500, internal_server_error)
 
 
 

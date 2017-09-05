@@ -1,6 +1,8 @@
+import logging
 import pytest
 import os
 import docker
+import logging
 from pprint import pprint
 
 def _docker_client():
@@ -104,6 +106,10 @@ class TestAPI(object):
                 body = json.loads(body)
             except:
                 pass
+        logging.warning('r, s, h')
+        logging.warning(r)
+        logging.warning(s)
+        logging.warning(h)
         return body, rv.status_code, rv.headers
 
     def post(self, url, data=None, basic_auth=None, token_auth=None):
@@ -120,6 +126,10 @@ class TestAPI(object):
                 body = json.loads(body)
             except:
                 pass
+        logging.warning('r, s, h')
+        logging.warning(r)
+        logging.warning(s)
+        logging.warning(h)
         return body, rv.status_code, rv.headers
 
     def put(self, url, data=None, basic_auth=None, token_auth=None):

@@ -1,4 +1,5 @@
 from .utils import TestAPI
+import logging
 
 class TestPing(TestAPI):
     """Test for users."""
@@ -10,7 +11,6 @@ class TestPing(TestAPI):
 
         # we test both sync and async
         for url in ['/api/v1.0/ping/{0}'.format(minion),
-                    '/api/v1.0/tasks/ping/{0}'.format(minion),
                     '/api/v1.0/minions/{0}/ping'.format(minion)]:
             # ping one minion
             r, s, h = self.post(url, token_auth=token)
@@ -22,7 +22,6 @@ class TestPing(TestAPI):
         # now invalid minion
         minion = 'inminion_dzakdazdaz'
         for url in ['/api/v1.0/ping/{0}'.format(minion),
-                    '/api/v1.0/tasks/ping/{0}'.format(minion),
                     '/api/v1.0/minions/{0}/ping'.format(minion)]:
             # ping one minion
             r, s, h = self.post(url, token_auth=token)
@@ -34,7 +33,7 @@ class TestPing(TestAPI):
         minion = self.minion
 
         # we test both sync and async
-        for url in ['/api/v1.0/ping', '/api/v1.0/tasks/ping']:
+        for url in ['/api/v1.0/ping']:
             # ping using list
             r, s, h = self.post(url, data={'target': [minion]},
                                 token_auth=token)
