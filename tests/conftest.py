@@ -1,9 +1,8 @@
-import logging
+import base64
 import pytest
-import os
 import docker
-import logging
-from pprint import pprint
+import json
+
 
 def _docker_client():
     return docker.from_env()
@@ -14,7 +13,6 @@ def api_url():
     """Ensure that "some service" is up and responsive."""
     client = _docker_client()
     web = client.containers.get('web')
-    
     web.attrs['NetworkSettings']
 
     port = None
@@ -75,11 +73,6 @@ class TestAPI(object):
         assert s == 200
         return r['token']
 
-    def get_user(self, user):
-        """Return a user."""
-        user = User.query.filter_by(nickname=user).first()
-        return user
-
     def get_headers(self, basic_auth=None, token_auth=None):
         """Manage headers for requests."""
         headers = {
@@ -99,17 +92,12 @@ class TestAPI(object):
                              headers=self.get_headers(basic_auth, token_auth))
         # clean up the database session, since this only occurs when the app
         # context is popped.
-        db.session.remove()
         body = rv.get_data(as_text=True)
         if body is not None and body != '':
             try:
                 body = json.loads(body)
             except:
                 pass
-        logging.warning('r, s, h')
-        logging.warning(r)
-        logging.warning(s)
-        logging.warning(h)
         return body, rv.status_code, rv.headers
 
     def post(self, url, data=None, basic_auth=None, token_auth=None):
@@ -119,17 +107,12 @@ class TestAPI(object):
                               headers=self.get_headers(basic_auth, token_auth))
         # clean up the database session, since this only occurs when the app
         # context is popped.
-        db.session.remove()
         body = rv.get_data(as_text=True)
         if body is not None and body != '':
             try:
                 body = json.loads(body)
             except:
                 pass
-        logging.warning('r, s, h')
-        logging.warning(r)
-        logging.warning(s)
-        logging.warning(h)
         return body, rv.status_code, rv.headers
 
     def put(self, url, data=None, basic_auth=None, token_auth=None):
@@ -139,7 +122,6 @@ class TestAPI(object):
                              headers=self.get_headers(basic_auth, token_auth))
         # clean up the database session, since this only occurs when the app
         # context is popped.
-        db.session.remove()
         body = rv.get_data(as_text=True)
         if body is not None and body != '':
             try:
@@ -154,7 +136,6 @@ class TestAPI(object):
                                                               token_auth))
         # clean up the database session, since this only occurs when the app
         # context is popped.
-        db.session.remove()
         body = rv.get_data(as_text=True)
         if body is not None and body != '':
             try:

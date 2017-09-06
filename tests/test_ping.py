@@ -1,5 +1,5 @@
 from .utils import TestAPI
-import logging
+
 
 class TestPing(TestAPI):
     """Test for users."""
@@ -67,4 +67,3 @@ class TestPing(TestAPI):
             r, s, h = self.post(url, data={'target': ['minion_invalid']},
                                 token_auth=token)
             assert s == 400
-

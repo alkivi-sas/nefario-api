@@ -8,6 +8,7 @@ click==6.7                # via flask
 flasgger==0.6.6
 flask-cors==3.0.3
 flask-httpauth==3.2.3
+flask-script==2.0.6
 flask-sqlalchemy==2.2
 flask==0.12.2
 itsdangerous==0.24        # via flask

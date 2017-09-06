@@ -5,6 +5,8 @@ COPY requirements.txt /nefario
 WORKDIR /nefario
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install --no-cache-dir git+https://github.com/saltstack/pepper.git
+COPY config.py /
+COPY manage.py /
 COPY start.sh /
 RUN chmod +x /start.sh
 ENTRYPOINT /start.sh

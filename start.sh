@@ -1,2 +1,3 @@
 #!/bin/sh
-while sleep 5; do python nefario.py; done;
+python /manage.py createdb
+while sleep 5; do python /manage.py runserver -h 0.0.0.0; done;

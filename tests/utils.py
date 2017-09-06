@@ -2,7 +2,8 @@ import base64
 import json
 import pytest
 
-from requests import Request, Session
+from requests import Session
+
 
 class TestAPI(object):
     """
@@ -52,11 +53,6 @@ class TestAPI(object):
         assert s == 200
         return r['token']
 
-    def get_user(self, user):
-        """Return a user."""
-        user = User.query.filter_by(nickname=user).first()
-        return user
-
     def get_headers(self, basic_auth=None, token_auth=None):
         """Manage headers for requests."""
         headers = {
@@ -89,7 +85,6 @@ class TestAPI(object):
         d = data if data is None else json.dumps(data)
         rv = self.request('POST', url, data=d,
                           headers=self.get_headers(basic_auth, token_auth))
-        print(rv)
         body = rv.text
         if body is not None and body != '':
             try:
@@ -114,8 +109,8 @@ class TestAPI(object):
     def delete(self, url, basic_auth=None, token_auth=None):
         """DELETE method helper."""
         rv = self.request('DELETE', url, headers=self.get_headers(basic_auth,
-                                                              token_auth))
-        body = rv.get_data(as_text=True)
+                                                                  token_auth))
+        body = rv.text
         if body is not None and body != '':
             try:
                 body = json.loads(body)

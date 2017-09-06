@@ -1,9 +1,8 @@
-from utils import timestamp
+from flask import abort
 
-try:
-    from __main__ import db
-except ImportError:
-    from app import db
+from . import db
+from .utils import timestamp
+
 
 class User(db.Model):
     """The User model."""

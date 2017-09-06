@@ -10,6 +10,7 @@ setup(
         'Flask-HTTPAuth',
         'flask-cors',
         'flask_sqlalchemy',
+        'Flask-Script',
         'flasgger',
         'salt-pepper',
     ],
