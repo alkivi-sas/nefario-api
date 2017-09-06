@@ -28,5 +28,6 @@ install:
 after_success:
 - if [ "$TRAVIS_BRANCH" == "master" ]; then
   docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
+  docker tag nefarioapi_api alkivi/nefario-api;
   docker push alkivi/nefario-api;
   fi
