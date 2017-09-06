@@ -25,3 +25,8 @@ python:
 - '3.6'
 install: 
 - pip install -r requirements.tests.txt
+after_success:
+- if [ "$TRAVIS_BRANCH" == "master" ]; then
+  docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
+  docker push alkivi/nefario-api;
+  fi
