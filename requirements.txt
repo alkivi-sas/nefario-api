@@ -4,21 +4,31 @@
 #
 #    pip-compile --output-file requirements.txt setup.py
 #
+amqp==2.2.1               # via kombu
+billiard==3.5.0.3         # via celery
+celery==4.1.0
 click==6.7                # via flask
+enum-compat==0.0.2        # via eventlet
+eventlet==0.21.0
 flasgger==0.6.6
 flask-cors==3.0.3
 flask-httpauth==3.2.3
 flask-script==2.0.6
 flask-sqlalchemy==2.2
 flask==0.12.2
+greenlet==0.4.12          # via eventlet
+gunicorn==19.7.1
 itsdangerous==0.24        # via flask
 jinja2==2.9.6             # via flask
 jsonschema==2.6.0         # via flasgger
+kombu==4.1.0              # via celery
 markupsafe==1.0           # via jinja2
 mistune==0.7.4            # via flasgger
+pytz==2017.2              # via celery
 pyyaml==3.12              # via flasgger
 redis==2.10.5
 salt-pepper==0.5.0
 six==1.10.0               # via flasgger, flask-cors
 sqlalchemy==1.1.13        # via flask-sqlalchemy
+vine==1.1.4               # via amqp
 werkzeug==0.12.2          # via flask

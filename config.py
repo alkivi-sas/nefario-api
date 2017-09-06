@@ -17,8 +17,10 @@ class Config(object):
 
     # Extension sqlalchemy
     SQLALCHEMY_DATABASE_URI = os.environ.get(
-        'DATABASE_URL', 'sqlite:///' + os.path.join(basedir, 'db.sqlite'))
+        'DATABASE_URL', 'sqlite:///' + os.path.join('/nefario', 'db.sqlite'))
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    CELERY_CONFIG = {}
 
     # Extension swagger
     SWAGGER = {'specs':
@@ -59,6 +61,7 @@ class TestingConfig(Config):
     """Specific for test."""
     TESTING = True
     SQLALCHEMY_DATABASE_URI = 'sqlite://'
+    CELERY_CONFIG = {'CELERY_ALWAYS_EAGER': True}
 
 
 config = {

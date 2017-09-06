@@ -1,8 +1,29 @@
+import logging
 import base64
 import json
 import pytest
 
 from requests import Session
+
+
+def _get_result(rv):
+    """Log if error 500."""
+    # clean up the database session, since this only occurs when the app
+    # context is popped.
+    body = rv.text
+    if body is not None and body != '':
+        try:
+            body = json.loads(body)
+        except:
+            pass
+
+    if rv.status_code == 500:
+        logging.warning('headers')
+        logging.warning(rv.headers)
+        logging.warning('body')
+        logging.warning(body)
+
+    return body, rv.status_code, rv.headers
 
 
 class TestAPI(object):
@@ -24,7 +45,10 @@ class TestAPI(object):
         self.client = Session()
 
     def request(self, method, url, params=None, data=None, headers=None):
-        final_url = '{0}/{1}'.format(self.api_url, url.lstrip('/'))
+        if url.startswith('http'):
+            final_url = url
+        else:
+            final_url = '{0}/{1}'.format(self.api_url, url.lstrip('/'))
         return self.client.request(method, final_url, params, data, headers)
 
     @property
@@ -70,50 +94,24 @@ class TestAPI(object):
         """GET method helper."""
         rv = self.request('GET', url,
                           headers=self.get_headers(basic_auth, token_auth))
-        # clean up the database session, since this only occurs when the app
-        # context is popped.
-        body = rv.text
-        if body is not None and body != '':
-            try:
-                body = json.loads(body)
-            except:
-                pass
-        return body, rv.status_code, rv.headers
+        return _get_result(rv)
 
     def post(self, url, data=None, basic_auth=None, token_auth=None):
         """POST method helper."""
         d = data if data is None else json.dumps(data)
         rv = self.request('POST', url, data=d,
                           headers=self.get_headers(basic_auth, token_auth))
-        body = rv.text
-        if body is not None and body != '':
-            try:
-                body = json.loads(body)
-            except:
-                pass
-        return body, rv.status_code, rv.headers
+        return _get_result(rv)
 
     def put(self, url, data=None, basic_auth=None, token_auth=None):
         """PUT method helper."""
         d = data if data is None else json.dumps(data)
         rv = self.request('PUT', url, data=d,
                           headers=self.get_headers(basic_auth, token_auth))
-        body = rv.text
-        if body is not None and body != '':
-            try:
-                body = json.loads(body)
-            except:
-                pass
-        return body, rv.status_code, rv.headers
+        return _get_result(rv)
 
     def delete(self, url, basic_auth=None, token_auth=None):
         """DELETE method helper."""
         rv = self.request('DELETE', url, headers=self.get_headers(basic_auth,
                                                                   token_auth))
-        body = rv.text
-        if body is not None and body != '':
-            try:
-                body = json.loads(body)
-            except:
-                pass
-        return body, rv.status_code, rv.headers
+        return _get_result(rv)

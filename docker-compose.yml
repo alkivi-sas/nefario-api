@@ -27,10 +27,28 @@ services:
     build: .
     hostname: api
     container_name: api
+    environment:
+      NEFARIO_CONFIG: development
+      WEB_SERVER: flask
+      CELERY_BROKER_URL: redis://redis
+      MODE: main
     links:
       - master
+      - redis
     ports:
       - "5000:5000"
+    volumes:
+      - ./nefario:/nefario
+  worker:
+    build: .
+    hostname: worker
+    container_name: worker
+    environment:
+      NEFARIO_CONFIG: development
+      CELERY_BROKER_URL: redis://redis
+      MODE: worker
+    links:
+      - redis
     volumes:
       - ./nefario:/nefario
   redis:

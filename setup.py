@@ -13,6 +13,9 @@ setup(
         'Flask-Script',
         'flasgger',
         'salt-pepper',
+        'gunicorn',
+        'eventlet',
+        'celery',
     ],
 )
 
